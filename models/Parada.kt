@@ -1,1 +1,0 @@
-//Clase que representa una parada
