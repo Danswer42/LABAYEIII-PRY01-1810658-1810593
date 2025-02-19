@@ -1,14 +1,11 @@
-//Punto de entrada del programa
+import java.util.Arrays
+import java.io.File
+import libGrafoR
 
-fun main () {
-  //Lee el archivo de entrada y construye el grafo
-  val graph = FileUtils.readInputFile("rutaOptUSB.txt")
+val Routes = mutableMapOf<String, Int>(
+    "USB" to 0,
+    "McDonald’s_Trinidad" to 1,
+    "Chacaíto" to 2
+)
 
-  //Define las paradas de inicio y fin
-  val origin = Stop("USB")
-  val destination = Stop("Chacaito")
-
-  //Calcula la ruta óptima
-  val optimalRoute = graph.findOptimalRoute(origin, destination)
-  println("Optimal route: ${optimalRoute.joinToString(" -> ") { it.name }}")
-}
+fun readRoute(route: String): GrafoNoDirigidoCosto {
