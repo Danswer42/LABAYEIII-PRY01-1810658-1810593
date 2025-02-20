@@ -1,15 +1,8 @@
-
 2
-2
-USB TRINIDAD 4.4 8.0
-TRINIDAD USB 4.4 12.0
-
-
-3
-6
-USB CHACAITO 14.9 13.0
-CHACAITO USB 14.9 18.0
-CHACAITO TRINIDAD 11.5 14.0
-TRINIDAD CHACAITO 11.5 9.0
-TRINIDAD USB 4.4 12.0
-USB TRINIDAD 4.4 8.0
+4
+Chacaíto 14.2
+McDonald’s_Trinidad 4.5
+Bus1 USB Chacaíto 4.05
+Bus1 Chacaíto McDonald’s_Trinidad 2.48
+Bus1 McDonald’s_Trinidad USB 1.28
+Bus1 USB McDonald’s_Trinidad 1.28 

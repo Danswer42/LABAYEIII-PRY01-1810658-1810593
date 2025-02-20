@@ -1,6 +1,7 @@
+import java.util.Arrays
 import java.io.File
 
-// Definición de las clases necesarias
+// Definición de las clases necesarias (ArcoCosto, GrafoDirigidoCosto, GrafoNoDirigidoCosto)
 
 data class ArcoCosto(val x: Int, val y: Int, val costo: Double)
 
@@ -41,7 +42,7 @@ class GrafoNoDirigidoCosto(val numDeVertices: Int) {
   }
 }
 
-// Función Kruskal
+// Función Kruskal (adaptada para recibir una lista de aristas)
 
 fun kruskal(aristas: List<ArcoCosto>): List<ArcoCosto> {
   val numVertices = aristas.flatMap { listOf(it.x, it.y) }.distinct().size
@@ -74,7 +75,7 @@ class DisjointSetUnion(size: Int) {
   }
 }
 
-// Función para leer el archivo y crear el grafo
+// Función para leer el archivo y crear el grafo (adaptada para GrafoNoDirigidoCosto)
 
 fun readRoute(route: String): GrafoNoDirigidoCosto {
   val file = File(route)
@@ -82,91 +83,38 @@ fun readRoute(route: String): GrafoNoDirigidoCosto {
 
   if (lines.isEmpty()) throw IllegalArgumentException("El archivo está vacío")
 
-  var currentLine = 0
-  var graphNoD: GrafoNoDirigidoCosto? = null
+  val numParadas = lines[0].toInt()
+  val numRutas = lines[1].toInt()
 
-  while (currentLine < lines.size) {
-    val line = lines[currentLine]
-
-    if (line.startsWith("#")) {
-      currentLine++
-      continue
-    }
-
-    // Saltar líneas en blanco o con solo espacios
-    if (line.isBlank()) {
-      currentLine++
-      continue
-    }
-
-    val numRecorridosStr = lines[currentLine++]
-    val numParadasStr = lines[currentLine++]
-
-    val numRecorridos = numRecorridosStr.toIntOrNull()
-    val numParadas = numParadasStr.toIntOrNull()
-
-    if (numRecorridos == null) {
-      println("Warning: Invalid number of recorridos: '$numRecorridosStr' en línea: ${currentLine - 2}. Se omite la ruta.")
-      // Saltar el resto de la definición de esta ruta
-      while (currentLine < lines.size && !lines[currentLine].startsWith("#")) {
-        currentLine++
-      }
-      continue // Pasar a la siguiente ruta
-    }
-
-    if (numParadas == null) {
-      println("Warning: Invalid number of paradas: '$numParadasStr' en línea: ${currentLine - 2}. Se omite la ruta.")
-      // Saltar el resto de la definición de esta ruta
-      while (currentLine < lines.size && !lines[currentLine].startsWith("#")) {
-        currentLine++
-      }
-      continue // Pasar a la siguiente ruta
-    }
-
-    if (numParadas != 2 && numParadas != 3) {
-      throw Exception("El número de paradas no coincide")
-    }
-
-    graphNoD = GrafoNoDirigidoCosto(numParadas)
-    val Routes = mutableMapOf<String, Int>()
-
-    // Leer información de las paradas
-    for (i in currentLine until currentLine + numParadas) {
-      val parts = lines[i].split(" ")
-      if (parts.size >= 1) {
-        val paradaName = parts[0]
-        Routes[paradaName] = i - currentLine
-      } else {
-        println("Warning: Invalid parada line: ${lines[i]}")
-      }
-    }
-
-    currentLine += numParadas
-
-    // Leer información de las rutas
-    for (i in currentLine until currentLine + numRecorridos) {
-      val parts = lines[i].split(" ")
-      if (parts.size >= 3) {
-        val inicio = parts[0]
-        val fin = parts[1]
-        val distancia = parts[2].toDoubleOrNull()
-
-        if (distancia != null) {
-          val u = Routes[inicio] ?: throw IllegalArgumentException("Parada no encontrada: $inicio")
-          val v = Routes[fin] ?: throw IllegalArgumentException("Parada no encontrada: $fin")
-          graphNoD.addAristaCosto(ArcoCosto(u, v, distancia))
-        } else {
-          println("Warning: Invalid distance value: ${parts[2]} in line: ${lines[i]}")
-        }
-      } else {
-        println("Warning: Invalid recorrido line: ${lines[i]}")
-      }
-    }
-
-    currentLine += numRecorridos
+  if (numParadas != 2 && numParadas != 3) {
+    throw Exception("El número de paradas no coincide")
   }
 
-  return graphNoD ?: GrafoNoDirigidoCosto(0)
+  val graphNoD = GrafoNoDirigidoCosto(numParadas)
+  val Routes = mutableMapOf<String, Int>()
+
+  // Leer información de las paradas y asignarles un índice
+  var paradaIndex = 0
+  for (i in 2 until 2 + numParadas) {
+    val partes = lines[i].split(" ")
+    val nombreParada = partes[0]
+    Routes[nombreParada] = paradaIndex++
+  }
+
+  // Leer información de las rutas
+  for (i in 2 + numParadas until lines.size) {
+    val partes = lines[i].split(" ")
+    val paradaInicio = partes[1] // Obtener el nombre de la parada de inicio
+    val paradaFin = partes[2]   // Obtener el nombre de la parada de fin
+    val distancia = partes[3].toDouble()
+
+    val u = Routes[paradaInicio] ?: throw IllegalArgumentException("Parada no encontrada: $paradaInicio")
+    val v = Routes[paradaFin] ?: throw IllegalArgumentException("Parada no encontrada: $paradaFin")
+
+    graphNoD.addAristaCosto(ArcoCosto(u, v, distancia))
+  }
+
+  return graphNoD
 }
 
 fun main() {
