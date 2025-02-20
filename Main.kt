@@ -1,112 +1,147 @@
 import java.util.Arrays
 import java.io.File
-import libGrafoR
-/*
-val Routes = mutableMapOf<String, Int>(
-    "USB" to 0,
-    "McDonald’s_Trinidad" to 1,
-    "Chacaíto" to 2
-)
+
+// Definición de las clases necesarias (ArcoCosto, GrafoDirigidoCosto, GrafoNoDirigidoCosto)
+
+data class ArcoCosto(val x: Int, val y: Int, val costo: Double)
+
+class GrafoDirigidoCosto(val numVertices: Int) {
+  private val adjList = Array(numVertices) { mutableListOf<ArcoCosto>() }
+
+  fun agregarArcoCosto(arco: ArcoCosto) {
+    adjList[arco.x].add(arco)
+  }
+
+  fun obtenerArcos(): List<ArcoCosto> {
+    val arcos = mutableListOf<ArcoCosto>()
+    for (i in 0 until numVertices) {
+      for (arco in adjList[i]) {
+        arcos.add(arco)
+      }
+    }
+    return arcos
+  }
+}
+
+class GrafoNoDirigidoCosto(val numDeVertices: Int) {
+  private val adjList = Array(numDeVertices) { mutableListOf<ArcoCosto>() }
+
+  fun addAristaCosto(arista: ArcoCosto) {
+    adjList[arista.x].add(arista)
+    adjList[arista.y].add(ArcoCosto(arista.y, arista.x, arista.costo)) // Para no dirigido, añadir en ambos sentidos
+  }
+
+  fun iterator(): Iterator<ArcoCosto> {
+    val aristas = mutableListOf<ArcoCosto>()
+    for (i in 0 until numDeVertices) {
+      for (arista in adjList[i]) {
+        aristas.add(arista)
+      }
+    }
+    return aristas.iterator()
+  }
+}
+
+// Función Kruskal (adaptada para recibir una lista de aristas)
+
+fun kruskal(aristas: List<ArcoCosto>): List<ArcoCosto> {
+  val numVertices = aristas.flatMap { listOf(it.x, it.y) }.distinct().size
+  val aristasOrdenadas = aristas.sortedBy { it.costo }
+  val conjuntos = DisjointSetUnion(numVertices)
+  val mst = mutableListOf<ArcoCosto>()
+
+  for (arista in aristasOrdenadas) {
+    if (conjuntos.find(arista.x) != conjuntos.find(arista.y)) {
+      mst.add(arista)
+      conjuntos.union(arista.x, arista.y)
+    }
+  }
+
+  return mst
+}
+
+class DisjointSetUnion(size: Int) {
+  private val parent = IntArray(size) { it }
+
+  fun find(i: Int): Int {
+    if (parent[i] == i) return i
+    return find(parent[i])
+  }
+
+  fun union(i: Int, j: Int) {
+    val rootI = find(i)
+    val rootJ = find(j)
+    parent[rootI] = rootJ
+  }
+}
+
+// Función para leer el archivo y crear el grafo (adaptada para GrafoNoDirigidoCosto)
 
 fun readRoute(route: String): GrafoNoDirigidoCosto {
-*/
-
-fun main() {
-    // Crear un grafo dirigido con costo
-    val grafo = GrafoDirigidoCosto(3) // 3 vértices: USB (0), McDonald's_Trinidad (1), Chacaito (2)
-
-    // Agregar aristas con costos (distancia y combustible)
-    grafo.agregarArcoCosto(ArcoCosto(0, 1, 10.0)) // USB - McDonald's_Trinidad (10 km)
-    grafo.agregarArcoCosto(ArcoCosto(1, 0, 10.0)) // McDonald's_Trinidad - USB (10 km)
-    grafo.agregarArcoCosto(ArcoCosto(0, 2, 15.0)) // USB - Chacaíto (15 km)
-    grafo.agregarArcoCosto(ArcoCosto(2, 1, 5.0)) // Chacaíto - McDonald's_Trinidad (5 km)
-    grafo.agregarArcoCosto(ArcoCosto(2, 0, 15.0)) // Chacaíto - USB (15 km)
-
-    // Aplicar Kruskal para la distancia
-    val mstDistancia = kruskal(grafo)
-    println("MST basado en distancia:")
-    for (arista in mstDistancia) {
-        println("${arista.x} - ${arista.y} (${arista.costo()} km)")
-    }
-
-    // Crear otro grafo para combustible
-    val grafoCombustible = GrafoDirigidoCosto(3)
-    grafoCombustible.agregarArcoCosto(ArcoCosto(0, 1, 8.0))
-    grafoCombustible.agregarArcoCosto(ArcoCosto(1, 0, 12.0))
-    grafoCombustible.agregarArcoCosto(ArcoCosto(0, 2, 15.0))
-    grafoCombustible.agregarArcoCosto(ArcoCosto(2, 1, 6.0))
-    grafoCombustible.agregarArcoCosto(ArcoCosto(2, 0, 15.0))
-
-    // Aplicar Kruskal para combustible
-    val mstCombustible = kruskal(grafoCombustible)
-    println("\nMST basado en combustible:")
-    for (arista in mstCombustible) {
-        println("${arista.x} - ${arista.y} (${arista.costo()} litros)")
-    }
-}
-/* 
-Función para leer un archivo de texto con entradas que pueden ser de tipo string,
-el cual retornara un grafo no dirigido ponderado con la informacion proporcionada
-en el archivo.txt
-*/
   val file = File(route)
   val lines = file.readLines()
 
   if (lines.isEmpty()) throw IllegalArgumentException("El archivo está vacío")
 
-  // La primera línea es el número de vértices
-  val vertices = lines[0].toInt()
-  if ( vertices != 2 && vertices != 3){
-      throw Exception("El número de paradas no coincide")
-  }
-  var graphNoD = GrafoNoDirigidoCosto(vertices)
+  val numParadas = lines[0].toInt()
+  val numRutas = lines[1].toInt()
 
-  // Las siguientes líneas consisten en la creacion de las aristas ponderadas
-  for (i in 2 until lineas.size) {
-      var (start, end, costStr) = lines[i].split(" ")
-      var u = Routes[start] ?: throw IllegalArgumentException("Parada no encontrada: $start")
-      var v = Routes[end] ?: throw IllegalArgumentException("Parada no encontrada: $end")
-      try{
-          var cost = costStr.toDouble()
-          graphNoD.addAristaCosto(AristaCosto(u, v, cost))
-      } catch (e: Exception){
-          throw Exception("El costo no tiene el formato adecuado")
-        }
+  if (numParadas != 2 && numParadas != 3) {
+    throw Exception("El número de paradas no coincide")
   }
+
+  val graphNoD = GrafoNoDirigidoCosto(numParadas)
+  val Routes = mutableMapOf<String, Int>()
+
+  // Leer información de las paradas y asignarles un índice
+  var paradaIndex = 0
+  for (i in 2 until 2 + numParadas) {
+    val partes = lines[i].split(" ")
+    val nombreParada = partes[0]
+    Routes[nombreParada] = paradaIndex++
+  }
+
+  // Leer información de las rutas
+  for (i in 2 + numParadas until lines.size) {
+    val partes = lines[i].split(" ")
+    val paradaInicio = partes[1] // Obtener el nombre de la parada de inicio
+    val paradaFin = partes[2]   // Obtener el nombre de la parada de fin
+    val distancia = partes[3].toDouble()
+
+    val u = Routes[paradaInicio] ?: throw IllegalArgumentException("Parada no encontrada: $paradaInicio")
+    val v = Routes[paradaFin] ?: throw IllegalArgumentException("Parada no encontrada: $paradaFin")
+
+    graphNoD.addAristaCosto(ArcoCosto(u, v, distancia))
+  }
+
   return graphNoD
 }
 
-fun main(args: Array<String>) {
-/* Funcion que se encargara de calcular la ruta menos costosa del autobús */
+fun main() {
+  val graphNoD = readRoute("rutaOptUSB.txt") // Leer el grafo desde el archivo
 
-  val graphNoD = readRoute("grafos/rutaOptUSB.txt")
-  var edges = graphNoD.iterator()
-  var listEdges = mutableListOf<AristaCosto>()
-
-  for (edge in edges){
-      list_edges.add(edge)
+  // Obtener las aristas del grafo
+  val aristas = mutableListOf<ArcoCosto>()
+  for (arista in graphNoD.iterator()) {
+    aristas.add(arista)
   }
 
-  //EL numero de vertices debe ser 3, si no, se lanzara una excepcion
-  if (graphNoD.numDeVertices != 3){
-    throw Exception("El número de vertices no coincide")
-  }
+  val mst = kruskal(aristas) // Calcular el MST
 
-  var mst = kruskal(listEdges, 3)
-
-  for edge in mst{
-    var stopStart = String()
-    var stopEnd = String()
-
-    for (stop, value in Routes){
-      if (value == edge.a){
-        stopStart = stop
-      }
-      if (value == edge.b){
-        stopEnd = stop
-      }
+  // Imprimir el MST
+  for (edge in mst) {
+    val stopStart = when (edge.x) {
+      0 -> "USB"
+      1 -> "McDonald’s_Trinidad"
+      2 -> "Chacaíto"
+      else -> "Desconocido"
     }
-    println("$stopStart --(${edge.cost})-- $stopEnd")
+    val stopEnd = when (edge.y) {
+      0 -> "USB"
+      1 -> "McDonald’s_Trinidad"
+      2 -> "Chacaíto"
+      else -> "Desconocido"
+    }
+    println("$stopStart --(${edge.costo})-- $stopEnd")
   }
 }
-

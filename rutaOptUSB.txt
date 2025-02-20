@@ -1,0 +1,8 @@
+2
+4
+Chacaíto 14.2
+McDonald’s_Trinidad 4.5
+Bus1 USB Chacaíto 4.05
+Bus1 Chacaíto McDonald’s_Trinidad 2.48
+Bus1 McDonald’s_Trinidad USB 1.28
+Bus1 USB McDonald’s_Trinidad 1.28 
